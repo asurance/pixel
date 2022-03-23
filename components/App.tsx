@@ -142,11 +142,18 @@ export default class App extends Component<Props, State> {
   onClickStart = () => {
     this.resetSize()
     this.resetK()
+    let lastCost = Infinity
     const update = () => {
       this.fit()
       this.toCanvas()
-      console.log('updating')
-      this.timeId = requestAnimationFrame(update)
+      const dif = lastCost - this.cost
+      if (dif > 0.1) {
+        this.timeId = requestAnimationFrame(update)
+      } else {
+        this.timeId = null
+        this.setState({ pictureState: PictureState.Finished })
+      }
+      lastCost = this.cost
     }
     update()
     this.setState({ pictureState: PictureState.Calculating })
