@@ -269,22 +269,27 @@ export default class App extends Component<Props, State> {
   render(): ReactNode {
     const { pictureState } = this.state
     return (
-      <div>
-        <div>
+      <div className="bg-gradient-to-br from-green-50 to-blue-50">
+        <div className="fixed opacity-20 hover:opacity-100 transition-opacity">
           {[PictureState.Imported, PictureState.Finished].includes(
             pictureState,
           ) && <button onClick={this.onClickImport}>导入图片</button>}
           {[PictureState.Imported, PictureState.Finished].includes(
             pictureState,
-          ) && <button onClick={this.onClickStart}>开始</button>}
+          ) && <button onClick={this.onClickStart}>开始生成</button>}
           {pictureState === PictureState.Calculating && (
-            <button onClick={this.onClickStop}>停止</button>
+            <button onClick={this.onClickStop}>停止生成</button>
           )}
           {pictureState === PictureState.Finished && (
             <button onClick={this.onClickExport}>导出图片</button>
           )}
         </div>
-        <canvas ref={this.canvasRef} />
+        <div className="h-screen flex justify-center align-middle">
+          <canvas
+            className="bg-white p-4 border-2 border-black rounded-lg"
+            ref={this.canvasRef}
+          />
+        </div>
       </div>
     )
   }
