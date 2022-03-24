@@ -23,6 +23,8 @@ type State = {
   pictureState: PictureState
 }
 
+const imageUrls = ['./0.jpeg', './1.jpeg', './2.jpeg', './3.jpeg', './4.jpeg']
+
 const enum PictureState {
   Loading,
   Imported,
@@ -52,7 +54,8 @@ export default class App extends Component<Props, State> {
   }
 
   componentDidMount() {
-    this.image.src = './1366.jpg'
+    const now = new Date().setMinutes(0, 0, 0)
+    this.image.src = imageUrls[(now / 1000 / 60 / 60) % imageUrls.length]
   }
 
   componentWillUnmount() {
