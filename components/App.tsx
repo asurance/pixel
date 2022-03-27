@@ -1,4 +1,6 @@
 import { Component, createRef, ReactNode } from 'react'
+import ExportDialog, { ExportConfig } from './ExportDialog'
+import Button from './Button'
 
 type Color = [number, number, number, number]
 type Position = [number, number]
@@ -21,6 +23,7 @@ type Props = {}
 
 type State = {
   pictureState: PictureState
+  exportDialogOpen: boolean
 }
 
 const imageUrls = ['./0.jpeg', './1.jpeg', './2.jpeg', './3.jpeg', './4.jpeg']
@@ -50,6 +53,7 @@ export default class App extends Component<Props, State> {
     this.image.onload = this.onImageLoaded
     this.state = {
       pictureState: PictureState.Loading,
+      exportDialogOpen: false,
     }
   }
 
@@ -247,41 +251,62 @@ export default class App extends Component<Props, State> {
   }
 
   onClickExport = () => {
+    this.setState({ exportDialogOpen: true })
+  }
+
+  onExportOK = ({ type, size }: ExportConfig) => {
     const canvas = document.createElement('canvas')
-    canvas.width = this.width * this.size
-    canvas.height = this.height * this.size
+    canvas.width = this.width * size
+    canvas.height = this.height * size
     const ctx = canvas.getContext('2d')!
     for (let i = 0; i < this.k; i++) {
       if (this.indice.has(i)) {
         ctx.fillStyle = ColorToStr(this.centers[i])
         for (const [row, col] of this.indice.get(i)!) {
-          ctx.fillRect(col * this.size, row * this.size, this.size, this.size)
+          ctx.fillRect(col * size, row * size, size, size)
         }
       }
     }
-    const url = canvas.toDataURL(undefined, 1)
+    const url = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 1)
     const a = document.createElement('a')
     a.href = url
     a.download = ''
     a.click()
+    this.setState({ exportDialogOpen: false })
+  }
+
+  onExportCancel = () => {
+    this.setState({ exportDialogOpen: false })
   }
 
   render(): ReactNode {
-    const { pictureState } = this.state
+    const { pictureState, exportDialogOpen } = this.state
     return (
       <div className="bg-gradient-to-br from-green-50 to-blue-50">
         <div className="fixed opacity-20 hover:opacity-100 transition-opacity">
           {[PictureState.Imported, PictureState.Finished].includes(
             pictureState,
-          ) && <button onClick={this.onClickImport}>导入图片</button>}
+          ) && (
+            <Button className="m-1" onClick={this.onClickImport}>
+              导入图片
+            </Button>
+          )}
           {[PictureState.Imported, PictureState.Finished].includes(
             pictureState,
-          ) && <button onClick={this.onClickStart}>开始生成</button>}
+          ) && (
+            <Button className="m-1" onClick={this.onClickStart}>
+              开始生成
+            </Button>
+          )}
           {pictureState === PictureState.Calculating && (
-            <button onClick={this.onClickStop}>停止生成</button>
+            <Button className="m-1" onClick={this.onClickStop}>
+              停止生成
+            </Button>
           )}
           {pictureState === PictureState.Finished && (
-            <button onClick={this.onClickExport}>导出图片</button>
+            <Button className="m-1" onClick={this.onClickExport}>
+              导出图片
+            </Button>
           )}
         </div>
         <div className="h-screen flex justify-center align-middle">
@@ -290,6 +315,11 @@ export default class App extends Component<Props, State> {
             ref={this.canvasRef}
           />
         </div>
+        <ExportDialog
+          open={exportDialogOpen}
+          onOk={this.onExportOK}
+          onCancel={this.onExportCancel}
+        />
       </div>
     )
   }
