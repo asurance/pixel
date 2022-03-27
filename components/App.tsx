@@ -1,6 +1,7 @@
 import { Component, createRef, ReactNode } from 'react'
 import ExportDialog, { ExportConfig } from './ExportDialog'
 import Button from './Button'
+import CreateDialog, { CreateConfig } from './CreateDialog'
 
 type Color = [number, number, number, number]
 type Position = [number, number]
@@ -24,6 +25,7 @@ type Props = {}
 type State = {
   pictureState: PictureState
   exportDialogOpen: boolean
+  createDialogOpen: boolean
 }
 
 const imageUrls = ['./0.jpeg', './1.jpeg', './2.jpeg', './3.jpeg', './4.jpeg']
@@ -54,6 +56,7 @@ export default class App extends Component<Props, State> {
     this.state = {
       pictureState: PictureState.Loading,
       exportDialogOpen: false,
+      createDialogOpen: false,
     }
   }
 
@@ -147,8 +150,12 @@ export default class App extends Component<Props, State> {
   }
 
   onClickStart = () => {
-    this.resetSize()
-    this.resetK()
+    this.setState({ createDialogOpen: true })
+  }
+
+  onStartOk = ({ size, k }: CreateConfig) => {
+    this.resetSize(size)
+    this.resetK(k)
     let lastCost = Infinity
     const update = () => {
       this.fit()
@@ -163,7 +170,14 @@ export default class App extends Component<Props, State> {
       lastCost = this.cost
     }
     update()
-    this.setState({ pictureState: PictureState.Calculating })
+    this.setState({
+      createDialogOpen: false,
+      pictureState: PictureState.Calculating,
+    })
+  }
+
+  onStartCancel = () => {
+    this.setState({ createDialogOpen: false })
   }
 
   toCanvas() {
@@ -280,7 +294,7 @@ export default class App extends Component<Props, State> {
   }
 
   render(): ReactNode {
-    const { pictureState, exportDialogOpen } = this.state
+    const { pictureState, exportDialogOpen, createDialogOpen } = this.state
     return (
       <div className="bg-gradient-to-br from-green-50 to-blue-50">
         <div className="fixed opacity-20 hover:opacity-100 transition-opacity">
@@ -315,6 +329,13 @@ export default class App extends Component<Props, State> {
             ref={this.canvasRef}
           />
         </div>
+        <CreateDialog
+          imageWidth={this.image.width}
+          imageHeight={this.image.height}
+          open={createDialogOpen}
+          onOk={this.onStartOk}
+          onCancel={this.onStartCancel}
+        />
         <ExportDialog
           open={exportDialogOpen}
           onOk={this.onExportOK}
