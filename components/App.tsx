@@ -2,6 +2,7 @@ import { Component, createRef, ReactNode } from 'react'
 import ExportDialog, { ExportConfig } from './ExportDialog'
 import Button from './Button'
 import CreateDialog, { CreateConfig } from './CreateDialog'
+import Github from './Github'
 
 type Color = [number, number, number, number]
 type Position = [number, number]
@@ -297,6 +298,7 @@ export default class App extends Component<Props, State> {
     const { pictureState, exportDialogOpen, createDialogOpen } = this.state
     return (
       <div className="bg-gradient-to-br from-green-50 to-blue-50">
+        <Github />
         <div className="fixed opacity-20 hover:opacity-100 transition-opacity">
           {[PictureState.Imported, PictureState.Finished].includes(
             pictureState,
