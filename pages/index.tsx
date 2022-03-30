@@ -11,6 +11,10 @@ const Index: NextPage = () => (
     <Head>
       <title>图片像素化</title>
       <meta name="description" content="利用无监督学习将图片转像素化的工具" />
+      <meta
+        name="viewport"
+        content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"
+      />
       <link rel="icon" href="/favicon.ico" />
     </Head>
     <App />

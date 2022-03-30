@@ -325,7 +325,7 @@ export default class App extends Component<Props, State> {
             </Button>
           )}
         </div>
-        <div className="h-screen flex justify-center align-middle">
+        <div className="w-screen h-screen grid place-items-center">
           <canvas
             className="bg-white p-4 border-2 border-black rounded-lg"
             ref={this.canvasRef}
