@@ -3,4 +3,6 @@ const nextConfig = {
   reactStrictMode: true,
 }
 
-module.exports = nextConfig
+const semi = require('@douyinfe/semi-next').default({})
+
+module.exports = semi(nextConfig)

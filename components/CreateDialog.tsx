@@ -1,11 +1,7 @@
-import { ChangeEvent, FC, useCallback, useMemo, useState } from 'react'
+import { ChangeEvent, FC, useCallback, useState } from 'react'
+import { CreateConfig } from '../interfaces/Config'
 import Dialog from './Dialog'
 import FormItem from './FormItem'
-
-export type CreateConfig = {
-  size: number
-  k: number
-}
 
 type Props = {
   imageWidth: number

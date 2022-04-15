@@ -1,12 +1,7 @@
 import { ChangeEvent, FC, useCallback, useState } from 'react'
+import { ExportConfig, ExportType } from '../interfaces/Config'
 import Dialog from './Dialog'
 import FormItem from './FormItem'
-
-export type ExportType = 'png' | 'jpeg'
-export type ExportConfig = {
-  type: ExportType
-  size: number
-}
 
 type Props = {
   open?: boolean
