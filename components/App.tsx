@@ -1,7 +1,7 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useExportDialog } from './ExportDialog'
 import Button from './Button'
-import CreateDialog, { useCreateDialog } from './CreateDialog'
+import { useCreateDialog } from './CreateDialog'
 import Github from './Github'
 import Pixelator from '../Pixelator'
 import { CreateConfig, ExportConfig } from '../interfaces/Config'
@@ -9,8 +9,6 @@ import { CreateConfig, ExportConfig } from '../interfaces/Config'
 type Props = {
   initialImageSrc?: string
 }
-
-const imageUrls = ['./0.jpeg', './1.jpeg', './2.jpeg', './3.jpeg', './4.jpeg']
 
 const enum PictureState {
   Loading,
