@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
-import ExportDialog from './ExportDialog'
+import { useExportDialog } from './ExportDialog'
 import Button from './Button'
 import CreateDialog from './CreateDialog'
 import Github from './Github'
@@ -99,17 +99,10 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     }
     setPictureState(PictureState.Finished)
   }
-  const [exportDialogOpen, setExportDialogOpen] = useState(false)
-  const onClickExport = useCallback(() => {
-    setExportDialogOpen(true)
-  }, [])
   const onExportOK = useCallback((config: ExportConfig) => {
     pixelatorRef.current.export(config)
-    setExportDialogOpen(false)
   }, [])
-  const onExportCancel = useCallback(() => {
-    setExportDialogOpen(false)
-  }, [])
+  const { openExportDialog, exportDialog } = useExportDialog(onExportOK)
   return (
     <div className="bg-gradient-to-br from-green-50 to-blue-50">
       <Github />
@@ -134,7 +127,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
           </Button>
         )}
         {pictureState === PictureState.Finished && (
-          <Button className="m-1" onClick={onClickExport}>
+          <Button className="m-1" onClick={openExportDialog}>
             导出图片
           </Button>
         )}
@@ -152,11 +145,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
         onOk={onStartOK}
         onCancel={onStartCancel}
       />
-      <ExportDialog
-        open={exportDialogOpen}
-        onOk={onExportOK}
-        onCancel={onExportCancel}
-      />
+      {exportDialog}
     </div>
   )
 }

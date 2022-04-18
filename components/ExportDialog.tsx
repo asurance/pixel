@@ -1,15 +1,15 @@
-import { ChangeEvent, FC, useCallback, useState } from 'react'
+import { ChangeEvent, FC, useCallback, useMemo, useState } from 'react'
 import { ExportConfig, ExportType } from '../interfaces/Config'
 import Dialog from './Dialog'
 import FormItem from './FormItem'
 
 type Props = {
   open?: boolean
-  onOk?: (config: ExportConfig) => void
+  onOK?: (config: ExportConfig) => void
   onCancel?: () => void
 }
 
-const ExportDialog: FC<Props> = ({ open = false, onOk, onCancel }) => {
+const ExportDialog: FC<Props> = ({ open = false, onOK: onOk, onCancel }) => {
   const [exportType, setExportType] = useState<ExportType>('png')
   const [exportSize, setExportSize] = useState<number>(1)
   const onExportTypeChange = useCallback(
@@ -63,6 +63,39 @@ const ExportDialog: FC<Props> = ({ open = false, onOk, onCancel }) => {
       </FormItem>
     </Dialog>
   )
+}
+
+export function useExportDialog(onOK: (config: ExportConfig) => void) {
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
+  const onExportOK = useCallback(
+    (config: ExportConfig) => {
+      setExportDialogOpen(false)
+      onOK(config)
+    },
+    [onOK],
+  )
+  const onExportCancel = useCallback(() => {
+    setExportDialogOpen(false)
+  }, [])
+  const exportDialog = useMemo(
+    () => (
+      <ExportDialog
+        open={exportDialogOpen}
+        onOK={onExportOK}
+        onCancel={onExportCancel}
+      />
+    ),
+    [exportDialogOpen, onExportCancel, onExportOK],
+  )
+  return {
+    exportDialog,
+    openExportDialog: useCallback(() => {
+      setExportDialogOpen(true)
+    }, []),
+    closeExportDialog: useCallback(() => {
+      setExportDialogOpen(false)
+    }, []),
+  }
 }
 
 export default ExportDialog
