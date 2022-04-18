@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { ChangeEvent, FC, useCallback, useState } from 'react'
 import { CreateConfig } from '../interfaces/Config'
 import Dialog from './Dialog'
@@ -7,7 +8,7 @@ type Props = {
   imageWidth: number
   imageHeight: number
   open?: boolean
-  onOk?: (config: CreateConfig) => void
+  onOK?: (config: CreateConfig) => void
   onCancel?: () => void
 }
 
@@ -15,7 +16,7 @@ const CreateDialog: FC<Props> = ({
   open = false,
   imageWidth,
   imageHeight,
-  onOk,
+  onOK,
   onCancel,
 }) => {
   const [createSize, setCreateSize] = useState<number>(16)
@@ -30,8 +31,8 @@ const CreateDialog: FC<Props> = ({
     setCreateK(parseInt(evt.target.value, 10))
   }, [])
   const onClickOk = useCallback(() => {
-    onOk?.({ size: createSize, k: createK })
-  }, [createK, createSize, onOk])
+    onOK?.({ size: createSize, k: createK })
+  }, [createK, createSize, onOK])
   const onClickCancel = useCallback(() => {
     onCancel?.()
   }, [onCancel])
@@ -76,6 +77,45 @@ const CreateDialog: FC<Props> = ({
       </FormItem>
     </Dialog>
   )
+}
+
+export function useCreateDialog(
+  imageWidth: number,
+  imageHeight: number,
+  onOK: (config: CreateConfig) => void,
+) {
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const onCreateOK = useCallback(
+    (config: CreateConfig) => {
+      setCreateDialogOpen(false)
+      onOK(config)
+    },
+    [onOK],
+  )
+  const onCreateCancel = useCallback(() => {
+    setCreateDialogOpen(false)
+  }, [])
+  const createDialog = useMemo(
+    () => (
+      <CreateDialog
+        imageWidth={imageWidth}
+        imageHeight={imageHeight}
+        open={createDialogOpen}
+        onOK={onCreateOK}
+        onCancel={onCreateCancel}
+      />
+    ),
+    [createDialogOpen, imageHeight, imageWidth, onCreateCancel, onCreateOK],
+  )
+  return {
+    createDialog,
+    openCreateDialog: useCallback(() => {
+      setCreateDialogOpen(true)
+    }, []),
+    closeCreateDialog: useCallback(() => {
+      setCreateDialogOpen(false)
+    }, []),
+  }
 }
 
 export default CreateDialog

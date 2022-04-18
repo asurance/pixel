@@ -1,7 +1,7 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useExportDialog } from './ExportDialog'
 import Button from './Button'
-import CreateDialog from './CreateDialog'
+import CreateDialog, { useCreateDialog } from './CreateDialog'
 import Github from './Github'
 import Pixelator from '../Pixelator'
 import { CreateConfig, ExportConfig } from '../interfaces/Config'
@@ -56,10 +56,6 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       }
     }
   }, [])
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const onClickStart = useCallback(() => {
-    setCreateDialogOpen(true)
-  }, [])
   const timeIdRef = useRef<number | null>(null)
   useEffect(() => {
     return () => {
@@ -68,7 +64,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       }
     }
   }, [])
-  const onStartOK = useCallback(({ size, k }: CreateConfig) => {
+  const onCreateOK = useCallback(({ size, k }: CreateConfig) => {
     const pixelator = pixelatorRef.current
     pixelator.setSize(size).setK(k)
     let lastCost = Infinity
@@ -86,11 +82,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       lastCost = cost
     }
     update()
-    setCreateDialogOpen(false)
     setPictureState(PictureState.Calculating)
-  }, [])
-  const onStartCancel = useCallback(() => {
-    setCreateDialogOpen(false)
   }, [])
   const onClickStop = () => {
     if (timeIdRef.current !== null) {
@@ -99,6 +91,11 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     }
     setPictureState(PictureState.Finished)
   }
+  const { createDialog, openCreateDialog } = useCreateDialog(
+    imageRef.current.width,
+    imageRef.current.height,
+    onCreateOK,
+  )
   const onExportOK = useCallback((config: ExportConfig) => {
     pixelatorRef.current.export(config)
   }, [])
@@ -117,7 +114,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
         {[PictureState.Imported, PictureState.Finished].includes(
           pictureState,
         ) && (
-          <Button className="m-1" onClick={onClickStart}>
+          <Button className="m-1" onClick={openCreateDialog}>
             开始生成
           </Button>
         )}
@@ -138,13 +135,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
           ref={canvasRef}
         />
       </div>
-      <CreateDialog
-        imageWidth={imageRef.current.width}
-        imageHeight={imageRef.current.height}
-        open={createDialogOpen}
-        onOk={onStartOK}
-        onCancel={onStartCancel}
-      />
+      {createDialog}
       {exportDialog}
     </div>
   )
