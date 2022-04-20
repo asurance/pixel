@@ -1,10 +1,10 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { useExportDialog } from './ExportDialog'
 import Button from './Button'
-import { useCreateDialog } from './CreateDialog'
 import Github from './Github'
 import Pixelator from '../Pixelator'
-import { CreateConfig, ExportConfig } from '../interfaces/Config'
+import { ExportConfig, GenerateConfig } from '../interfaces/Config'
+import { useGenerateModal } from './GenerateModal'
 
 type Props = {
   initialImageSrc?: string
@@ -62,7 +62,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       }
     }
   }, [])
-  const onCreateOK = useCallback(({ size, k }: CreateConfig) => {
+  const onGenerateOk = useCallback(({ size, k }: GenerateConfig) => {
     const pixelator = pixelatorRef.current
     pixelator.setSize(size).setK(k)
     let lastCost = Infinity
@@ -89,10 +89,10 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     }
     setPictureState(PictureState.Finished)
   }
-  const { createDialog, openCreateDialog } = useCreateDialog(
+  const { generateModal, openGenerateModal } = useGenerateModal(
     imageRef.current.width,
     imageRef.current.height,
-    onCreateOK,
+    onGenerateOk,
   )
   const onExportOK = useCallback((config: ExportConfig) => {
     pixelatorRef.current.export(config)
@@ -112,7 +112,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
         {[PictureState.Imported, PictureState.Finished].includes(
           pictureState,
         ) && (
-          <Button className="m-1" onClick={openCreateDialog}>
+          <Button className="m-1" onClick={openGenerateModal}>
             开始生成
           </Button>
         )}
@@ -133,7 +133,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
           ref={canvasRef}
         />
       </div>
-      {createDialog}
+      {generateModal}
       {exportDialog}
     </div>
   )

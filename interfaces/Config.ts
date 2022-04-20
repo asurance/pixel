@@ -1,4 +1,4 @@
-export type CreateConfig = {
+export type GenerateConfig = {
   size: number
   k: number
 }
