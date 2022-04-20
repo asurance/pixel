@@ -108,10 +108,10 @@ const GeneratorModal: FC<Props> = ({
               </Tooltip>
             ),
           }}
-          sliderProps={{ min: 8, max: 32 }}
+          min={8}
+          sliderProps={{ max: 32 }}
           inputNumberProps={{
             className: styles['input-number'],
-            min: 2,
           }}
           onChange={onKChange}
         />
