@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { promisify } from 'util'
 
-const App = dynamic(() => import('../components/App'), {
+const Playground = dynamic(() => import('../components/Playground'), {
   ssr: false,
 })
 
@@ -29,7 +29,7 @@ const Index: NextPage<Props> = ({ imageUrls }) => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <App initialImageSrc={imageUrl} />
+      <Playground initialImageSrc={imageUrl} />
     </div>
   )
 }

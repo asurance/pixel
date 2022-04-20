@@ -1,10 +1,12 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
-import Button from './Button'
-import Github from './Github'
-import Pixelator from '../Pixelator'
-import { ExportConfig, GenerateConfig } from '../interfaces/Config'
-import { useGenerateModal } from './GenerateModal'
-import { useExportModal } from './ExportModal'
+import { Button, SplitButtonGroup } from '@douyinfe/semi-ui'
+import Github from '../Github'
+import Pixelator from '../../Pixelator'
+import { ExportConfig, GenerateConfig } from '../../interfaces/Config'
+import { useGenerateModal } from '../GenerateModal'
+import { useExportModal } from '../ExportModal'
+
+import styles from './index.module.css'
 
 type Props = {
   initialImageSrc?: string
@@ -99,39 +101,46 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
   }, [])
   const { openExportModal, exportModal } = useExportModal(onExportOK)
   return (
-    <div className="bg-gradient-to-br from-green-50 to-blue-50">
+    <div className={styles.background}>
       <Github />
-      <div className="fixed opacity-20 hover:opacity-100 transition-opacity">
-        {[PictureState.Imported, PictureState.Finished].includes(
-          pictureState,
-        ) && (
-          <Button className="m-1" onClick={onClickImport}>
+      <div className={styles['button-group']}>
+        <SplitButtonGroup>
+          <Button
+            onClick={onClickImport}
+            disabled={
+              ![PictureState.Imported, PictureState.Finished].includes(
+                pictureState,
+              )
+            }
+          >
             导入图片
           </Button>
-        )}
-        {[PictureState.Imported, PictureState.Finished].includes(
-          pictureState,
-        ) && (
-          <Button className="m-1" onClick={openGenerateModal}>
+          <Button
+            onClick={openGenerateModal}
+            disabled={
+              ![PictureState.Imported, PictureState.Finished].includes(
+                pictureState,
+              )
+            }
+          >
             开始生成
           </Button>
-        )}
-        {pictureState === PictureState.Calculating && (
-          <Button className="m-1" onClick={onClickStop}>
+          <Button
+            onClick={onClickStop}
+            disabled={pictureState !== PictureState.Calculating}
+          >
             停止生成
           </Button>
-        )}
-        {pictureState === PictureState.Finished && (
-          <Button className="m-1" onClick={openExportModal}>
+          <Button
+            onClick={openExportModal}
+            disabled={pictureState !== PictureState.Finished}
+          >
             导出图片
           </Button>
-        )}
+        </SplitButtonGroup>
       </div>
-      <div className="w-screen h-screen grid place-items-center">
-        <canvas
-          className="bg-white p-4 border-2 border-black rounded-lg"
-          ref={canvasRef}
-        />
+      <div className={styles['canvas-container']}>
+        <canvas className={styles.canvas} ref={canvasRef} />
       </div>
       {generateModal}
       {exportModal}

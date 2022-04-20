@@ -1,5 +1,11 @@
 @import '~@douyinfe/semi-ui/dist/css/semi.min.css';
 
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
 .invisible {
   visibility: hidden;
 }

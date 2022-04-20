@@ -1,0 +1,29 @@
+.background {
+  background-image: linear-gradient(
+    to bottom right,
+    rgba(var(--semi-green-0), 1),
+    rgba(var(--semi-light-blue-0), 1)
+  );
+}
+.button-group {
+  position: fixed;
+  opacity: 0.4;
+  transition: opacity 0.5s;
+}
+
+.button-group:hover {
+  opacity: 1;
+}
+.canvas-container {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.canvas-container .canvas {
+  background-color: white;
+  padding: 1em;
+  border: 2px solid black;
+  border-radius: 1em;
+}
