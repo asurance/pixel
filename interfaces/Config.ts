@@ -5,6 +5,7 @@ export type GenerateConfig = {
 
 export type ExportType = 'png' | 'jpeg'
 export type ExportConfig = {
+  filename: string
   type: ExportType
-  size: number
+  quality: number
 }

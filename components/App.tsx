@@ -1,10 +1,10 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
-import { useExportDialog } from './ExportDialog'
 import Button from './Button'
 import Github from './Github'
 import Pixelator from '../Pixelator'
 import { ExportConfig, GenerateConfig } from '../interfaces/Config'
 import { useGenerateModal } from './GenerateModal'
+import { useExportModal } from './ExportModal'
 
 type Props = {
   initialImageSrc?: string
@@ -97,7 +97,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
   const onExportOK = useCallback((config: ExportConfig) => {
     pixelatorRef.current.export(config)
   }, [])
-  const { openExportDialog, exportDialog } = useExportDialog(onExportOK)
+  const { openExportModal, exportModal } = useExportModal(onExportOK)
   return (
     <div className="bg-gradient-to-br from-green-50 to-blue-50">
       <Github />
@@ -122,7 +122,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
           </Button>
         )}
         {pictureState === PictureState.Finished && (
-          <Button className="m-1" onClick={openExportDialog}>
+          <Button className="m-1" onClick={openExportModal}>
             导出图片
           </Button>
         )}
@@ -134,7 +134,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
         />
       </div>
       {generateModal}
-      {exportDialog}
+      {exportModal}
     </div>
   )
 }

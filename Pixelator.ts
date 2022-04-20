@@ -154,23 +154,23 @@ export default class Pixelator {
     }
   }
 
-  export({ type, size }: ExportConfig) {
+  export({ filename, type, quality }: ExportConfig) {
     const canvas = document.createElement('canvas')
-    canvas.width = this.width * size
-    canvas.height = this.height * size
+    canvas.width = this.width
+    canvas.height = this.height
     const ctx = canvas.getContext('2d')!
     for (let i = 0; i < this.k; i++) {
       if (this.indice.has(i)) {
         ctx.fillStyle = ColorToStr(this.centers[i])
         for (const [row, col] of this.indice.get(i)!) {
-          ctx.fillRect(col * size, row * size, size, size)
+          ctx.fillRect(col, row, 1, 1)
         }
       }
     }
-    const url = canvas.toDataURL(type === 'png' ? 'image/png' : 'image/jpeg', 1)
+    const url = canvas.toDataURL(`image/${type}`, quality)
     const a = document.createElement('a')
     a.href = url
-    a.download = ''
+    a.download = filename ? `${filename}.${type}` : ''
     a.click()
   }
 }
