@@ -10,3 +10,16 @@
 .icon.hide {
   visibility: hidden;
 }
+
+.exceed-slider {
+  display: flex;
+}
+
+.exceed-slider .slider {
+  flex: auto;
+}
+
+.exceed-slider .input-number {
+  margin-left: 2em;
+  width: 100px;
+}

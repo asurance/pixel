@@ -4,6 +4,7 @@ import { Form, Modal, Tooltip } from '@douyinfe/semi-ui'
 import classnames from 'classnames'
 import { FC, useCallback, useMemo, useRef, useState } from 'react'
 import { GenerateConfig } from '../../interfaces/Config'
+import ExceedSlider from '../ExceedSlider'
 
 import styles from './index.module.css'
 
@@ -23,21 +24,23 @@ const GeneratorModal: FC<Props> = ({
   onCancel,
 }) => {
   const [sizeValid, setSizeValid] = useState(true)
+  const [kSafe, setKSafe] = useState(true)
   const formApiRef = useRef<BaseFormApi<GenerateConfig> | null>(null)
   const onGetFormApi = useCallback((formApi: BaseFormApi<GenerateConfig>) => {
     formApiRef.current = formApi
   }, [])
   const onSizeChange = useCallback(
-    (value?: number | number[]) => {
-      const val = value as number
-      setSizeValid(imageWidth % val === 0 && imageHeight % val === 0)
+    (value: number) => {
+      setSizeValid(imageWidth % value === 0 && imageHeight % value === 0)
     },
     [imageHeight, imageWidth],
   )
+  const onKChange = useCallback((value: number) => {
+    setKSafe(value <= 32)
+  }, [])
   const onModalOk = useCallback(async () => {
     if (formApiRef.current) {
       const config = await formApiRef.current.validate()
-      console.log(config)
       onOK?.(config)
     }
   }, [onOK])
@@ -47,9 +50,7 @@ const GeneratorModal: FC<Props> = ({
   return (
     <Modal
       title="生成设置"
-      centered
       okText="生成"
-      size="medium"
       maskClosable={false}
       closable={false}
       visible={visible}
@@ -62,7 +63,9 @@ const GeneratorModal: FC<Props> = ({
         labelWidth={100}
         getFormApi={onGetFormApi}
       >
-        <Form.Slider
+        <ExceedSlider
+          className={styles['exceed-slider']}
+          sliderWrapperClassName={styles.slider}
           field="size"
           label={
             <span className={styles.label}>
@@ -80,10 +83,36 @@ const GeneratorModal: FC<Props> = ({
             </span>
           }
           min={2}
-          max={16}
+          sliderProps={{ max: 16 }}
+          inputNumberProps={{
+            className: styles['input-number'],
+            max: Math.min(imageWidth, imageHeight),
+          }}
           onChange={onSizeChange}
         />
-        <Form.Slider field="k" label="颜色数量" min={8} max={32} step={8} />
+        <ExceedSlider
+          className={styles['exceed-slider']}
+          sliderWrapperClassName={styles.slider}
+          field="k"
+          label={
+            <span className={styles.label}>
+              颜色数量
+              <Tooltip position="topLeft" content="颜色过多会影响生成时间">
+                <IconInfoCircle
+                  className={classnames(styles.icon, {
+                    [styles.hide]: kSafe,
+                  })}
+                />
+              </Tooltip>
+            </span>
+          }
+          sliderProps={{ min: 8, max: 32 }}
+          inputNumberProps={{
+            className: styles['input-number'],
+            min: 2,
+          }}
+          onChange={onKChange}
+        />
       </Form>
     </Modal>
   )
