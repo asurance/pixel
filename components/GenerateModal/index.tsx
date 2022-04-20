@@ -23,7 +23,9 @@ const GeneratorModal: FC<Props> = ({
   onOK,
   onCancel,
 }) => {
-  const [sizeValid, setSizeValid] = useState(true)
+  const [sizeValid, setSizeValid] = useState(
+    imageWidth % 16 === 0 && imageHeight % 16 === 0,
+  )
   const [kSafe, setKSafe] = useState(true)
   const formApiRef = useRef<BaseFormApi<GenerateConfig> | null>(null)
   const onGetFormApi = useCallback((formApi: BaseFormApi<GenerateConfig>) => {
@@ -58,7 +60,7 @@ const GeneratorModal: FC<Props> = ({
       onCancel={onModalCancel}
     >
       <Form
-        initValues={{ size: 16, k: 1 }}
+        initValues={{ size: 16, k: 8 }}
         labelPosition="left"
         labelWidth={100}
         getFormApi={onGetFormApi}
