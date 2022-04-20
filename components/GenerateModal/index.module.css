@@ -1,16 +1,3 @@
-.label {
-  display: inline-flex;
-  align-items: center;
-}
-
-.icon {
-  padding-left: 0.5em;
-}
-
-.icon.hide {
-  visibility: hidden;
-}
-
 .exceed-slider {
   display: flex;
 }

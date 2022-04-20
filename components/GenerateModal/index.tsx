@@ -38,7 +38,7 @@ const GeneratorModal: FC<Props> = ({
     [imageHeight, imageWidth],
   )
   const onKChange = useCallback((value: number) => {
-    setKSafe(value <= 32)
+    setKSafe(value <= 64)
   }, [])
   const onModalOk = useCallback(async () => {
     if (formApiRef.current) {
@@ -69,21 +69,21 @@ const GeneratorModal: FC<Props> = ({
           className={styles['exceed-slider']}
           sliderWrapperClassName={styles.slider}
           field="size"
-          label={
-            <span className={styles.label}>
-              像素大小
+          label={{
+            text: '像素大小',
+            extra: (
               <Tooltip
                 position="topLeft"
                 content="图片宽度或高度无法整除，像素化结果会被裁剪"
               >
                 <IconInfoCircle
-                  className={classnames(styles.icon, {
-                    [styles.hide]: sizeValid,
+                  className={classnames({
+                    invisible: sizeValid,
                   })}
                 />
               </Tooltip>
-            </span>
-          }
+            ),
+          }}
           min={2}
           sliderProps={{ max: 16 }}
           inputNumberProps={{
@@ -96,18 +96,18 @@ const GeneratorModal: FC<Props> = ({
           className={styles['exceed-slider']}
           sliderWrapperClassName={styles.slider}
           field="k"
-          label={
-            <span className={styles.label}>
-              颜色数量
+          label={{
+            text: '颜色数量',
+            extra: (
               <Tooltip position="topLeft" content="颜色过多会影响生成时间">
                 <IconInfoCircle
-                  className={classnames(styles.icon, {
-                    [styles.hide]: kSafe,
+                  className={classnames({
+                    invisible: kSafe,
                   })}
                 />
               </Tooltip>
-            </span>
-          }
+            ),
+          }}
           sliderProps={{ min: 8, max: 32 }}
           inputNumberProps={{
             className: styles['input-number'],
