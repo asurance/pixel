@@ -1,4 +1,4 @@
-import { ExportConfig } from './interfaces/Config'
+import { ExportConfig } from '@/interfaces/Config'
 
 type Color = [number, number, number, number]
 type Position = [number, number]

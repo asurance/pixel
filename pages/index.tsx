@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { useState } from 'react'
 import { promisify } from 'util'
 
-const Playground = dynamic(() => import('../components/Playground'), {
+const Playground = dynamic(() => import('@/components/Playground'), {
   ssr: false,
 })
 

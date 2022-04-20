@@ -1,10 +1,10 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
 import { Button, SplitButtonGroup } from '@douyinfe/semi-ui'
-import Github from '../Github'
-import Pixelator from '../../Pixelator'
-import { ExportConfig, GenerateConfig } from '../../interfaces/Config'
-import { useGenerateModal } from '../GenerateModal'
-import { useExportModal } from '../ExportModal'
+import Github from '@/components/Github'
+import Pixelator from '@/Pixelator'
+import { ExportConfig, GenerateConfig } from '@/interfaces/Config'
+import { useGenerateModal } from '@/components/GenerateModal'
+import { useExportModal } from '@/components/ExportModal'
 
 import styles from './index.module.css'
 
