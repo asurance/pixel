@@ -7,6 +7,12 @@ import { useGenerateModal } from '@/components/GenerateModal'
 import { useExportModal } from '@/components/ExportModal'
 
 import styles from './index.module.css'
+import {
+  IconExport,
+  IconImport,
+  IconPlay,
+  IconStop,
+} from '@douyinfe/semi-icons'
 
 type Props = {
   initialImageSrc?: string
@@ -106,6 +112,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       <div className={styles['button-group']}>
         <SplitButtonGroup>
           <Button
+            icon={<IconImport />}
             onClick={onClickImport}
             disabled={
               ![PictureState.Imported, PictureState.Finished].includes(
@@ -116,6 +123,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
             导入图片
           </Button>
           <Button
+            icon={<IconPlay />}
             onClick={openGenerateModal}
             disabled={
               ![PictureState.Imported, PictureState.Finished].includes(
@@ -126,12 +134,14 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
             开始生成
           </Button>
           <Button
+            icon={<IconStop />}
             onClick={onClickStop}
             disabled={pictureState !== PictureState.Calculating}
           >
             停止生成
           </Button>
           <Button
+            icon={<IconExport />}
             onClick={openExportModal}
             disabled={pictureState !== PictureState.Finished}
           >
