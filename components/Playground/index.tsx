@@ -133,8 +133,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
         }
         canvasRef.current && pixelator.toCanvas(canvasRef.current)
         const cost = pixelator.calculateCost()
-        const dif = lastCost - cost
-        if (dif > 0.1) {
+        if (lastCost - cost > 0) {
           setFitTimeId(requestAnimationFrame(update))
         } else {
           setFitTimeId(null)
