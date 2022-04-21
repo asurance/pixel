@@ -1,8 +1,9 @@
 import { BaseFormApi } from '@douyinfe/semi-foundation/lib/es/form/interface'
+import { IconInfoCircle } from '@douyinfe/semi-icons'
 import { Form, Modal, Tooltip } from '@douyinfe/semi-ui'
 import { FC, useCallback, useMemo, useRef, useState } from 'react'
+
 import { ImportConfig } from '@/interfaces/Config'
-import { IconInfoCircle } from '@douyinfe/semi-icons'
 
 type Props = {
   visible?: boolean

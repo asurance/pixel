@@ -1,12 +1,3 @@
-import { FC, useCallback, useEffect, useRef, useState } from 'react'
-import { Button, Dropdown, SplitButtonGroup, Toast } from '@douyinfe/semi-ui'
-import Github from '@/components/Github'
-import Pixelator from '@/utils/Pixelator'
-import { ExportConfig, GenerateConfig, ImportConfig } from '@/interfaces/Config'
-import { useGenerateModal } from '@/components/GenerateModal'
-import { useExportModal } from '@/components/ExportModal'
-
-import styles from './index.module.css'
 import {
   IconExport,
   IconFile,
@@ -16,8 +7,19 @@ import {
   IconPlay,
   IconStop,
 } from '@douyinfe/semi-icons'
-import { GetImageDataFromSrc } from '../../utils/ImageData'
-import { useImportModal } from '../ImportModal'
+import { Button, Dropdown, SplitButtonGroup, Toast } from '@douyinfe/semi-ui'
+import { FC, useCallback, useEffect, useRef, useState } from 'react'
+
+import { useExportModal } from '@/components/ExportModal'
+import { useGenerateModal } from '@/components/GenerateModal'
+import Github from '@/components/Github'
+import { useImportModal } from '@/components/ImportModal'
+import useLastedToken from '@/hooks/useLasteToken'
+import { ExportConfig, GenerateConfig, ImportConfig } from '@/interfaces/Config'
+import { GetImageDataFromSrc } from '@/utils/ImageData'
+import Pixelator from '@/utils/Pixelator'
+
+import styles from './index.module.css'
 
 type Props = {
   initialImageSrc?: string
@@ -53,51 +55,63 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       }
     }
   }, [imageData])
-  const tryLoadBlob = async (blob: Blob) => {
-    const url = URL.createObjectURL(blob)
-    try {
-      const imageData = await GetImageDataFromSrc(url)
-      setImageData(imageData)
-      setPixelator(null)
-    } catch {
-      Toast.error('图片解析错误')
-    }
-    URL.revokeObjectURL(url)
-  }
+  const { getLastedToken, comsumeToken } = useLastedToken()
+  const tryLoadBlob = useCallback(
+    async (blob: Blob, token: number) => {
+      const url = URL.createObjectURL(blob)
+      try {
+        const imageData = await GetImageDataFromSrc(url)
+        comsumeToken(token, () => {
+          setImageData(imageData)
+          setPixelator(null)
+        })
+      } catch {
+        Toast.error('图片解析错误')
+      }
+      URL.revokeObjectURL(url)
+    },
+    [comsumeToken],
+  )
   const onImportFromFile = useCallback(() => {
+    const token = getLastedToken()
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
     input.click()
     input.onchange = async () => {
       if (input.files && input.files.length > 0) {
-        await tryLoadBlob(input.files.item(0)!)
+        await tryLoadBlob(input.files.item(0)!, token)
       }
     }
-  }, [])
+  }, [getLastedToken, tryLoadBlob])
   const onImportFromClipboard = useCallback(async () => {
+    const token = getLastedToken()
     try {
       const items = await navigator.clipboard.read()
       if (items.length > 0) {
         const item = items.at(0)!
         const blob = await item.getType(item.types[0])
-        await tryLoadBlob(blob)
+        await tryLoadBlob(blob, token)
       } else {
         Toast.error('未读取到内容')
       }
     } catch {
       Toast.error('读取剪切板失败')
     }
-  }, [])
-  const onImportOk = useCallback(async ({ url }: ImportConfig) => {
-    try {
-      const response = await fetch(url)
-      const blob = await response.blob()
-      await tryLoadBlob(blob)
-    } catch {
-      Toast.error('图片下载失败')
-    }
-  }, [])
+  }, [getLastedToken, tryLoadBlob])
+  const onImportOk = useCallback(
+    async ({ url }: ImportConfig) => {
+      const token = getLastedToken()
+      try {
+        const response = await fetch(url)
+        const blob = await response.blob()
+        await tryLoadBlob(blob, token)
+      } catch {
+        Toast.error('图片下载失败')
+      }
+    },
+    [getLastedToken, tryLoadBlob],
+  )
   const { importModal, openImportModal } = useImportModal(onImportOk)
   const onGenerateOk = useCallback(
     (config: GenerateConfig) => {

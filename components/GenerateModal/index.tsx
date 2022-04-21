@@ -3,8 +3,9 @@ import { IconInfoCircle } from '@douyinfe/semi-icons'
 import { Form, Modal, Tooltip } from '@douyinfe/semi-ui'
 import classnames from 'classnames'
 import { FC, useCallback, useMemo, useRef, useState } from 'react'
-import { GenerateConfig } from '@/interfaces/Config'
+
 import ExceedSlider from '@/components/ExceedSlider'
+import { GenerateConfig } from '@/interfaces/Config'
 
 import styles from './index.module.css'
 
