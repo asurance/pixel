@@ -13,10 +13,10 @@ export default function useLastedToken() {
       curRef.current = token
       return token
     }, []),
-    comsumeToken: useCallback((token: number, fn: () => void) => {
+    comsumeToken: useCallback((token: number, fn?: () => void) => {
       setRef.current.delete(token)
       if (curRef.current === token) {
-        fn()
+        fn?.()
       }
     }, []),
   }

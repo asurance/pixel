@@ -35,6 +35,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
   }, [])
   const [imageData, setImageData] = useState<ImageData | null>(null)
   const [fitTimeId, setFitTimeId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
   useEffect(() => {
     return () => {
       if (fitTimeId !== null) {
@@ -64,8 +65,12 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
         comsumeToken(token, () => {
           setImageData(imageData)
           setPixelator(null)
+          setLoading(false)
         })
       } catch {
+        comsumeToken(token, () => {
+          setLoading(false)
+        })
         Toast.error('图片解析错误')
       }
       URL.revokeObjectURL(url)
@@ -80,11 +85,13 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     input.click()
     input.onchange = async () => {
       if (input.files && input.files.length > 0) {
+        setLoading(true)
         await tryLoadBlob(input.files.item(0)!, token)
       }
     }
   }, [getLastedToken, tryLoadBlob])
   const onImportFromClipboard = useCallback(async () => {
+    setLoading(true)
     const token = getLastedToken()
     try {
       const items = await navigator.clipboard.read()
@@ -101,6 +108,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
   }, [getLastedToken, tryLoadBlob])
   const onImportOk = useCallback(
     async ({ url }: ImportConfig) => {
+      setLoading(true)
       const token = getLastedToken()
       try {
         const response = await fetch(url)
@@ -188,7 +196,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
           <Button
             icon={<IconPlay />}
             onClick={openGenerateModal}
-            disabled={fitTimeId !== null || imageData === null}
+            disabled={loading || fitTimeId !== null || imageData === null}
           >
             开始生成
           </Button>
