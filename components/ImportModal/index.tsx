@@ -1,7 +1,8 @@
 import { BaseFormApi } from '@douyinfe/semi-foundation/lib/es/form/interface'
-import { Form, Modal } from '@douyinfe/semi-ui'
+import { Form, Modal, Tooltip } from '@douyinfe/semi-ui'
 import { FC, useCallback, useMemo, useRef, useState } from 'react'
 import { ImportConfig } from '@/interfaces/Config'
+import { IconInfoCircle } from '@douyinfe/semi-icons'
 
 type Props = {
   visible?: boolean
@@ -43,7 +44,14 @@ const ImportModal: FC<Props> = ({ visible, onOk, onCancel }) => {
       >
         <Form.Input
           field="url"
-          label="URL"
+          label={{
+            text: 'URL',
+            extra: (
+              <Tooltip position="topLeft" content="仅支持允许跨域访问的URL">
+                <IconInfoCircle />
+              </Tooltip>
+            ),
+          }}
           rules={[{ required: true, message: 'URL不能为空' }]}
         />
       </Form>
