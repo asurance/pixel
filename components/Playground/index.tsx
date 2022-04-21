@@ -25,9 +25,6 @@ type Props = {
   initialImageSrc?: string
 }
 
-// TODO 整理hooks
-// TODO 维护canvas数据
-
 const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
   useEffect(() => {
     onImportOk({ url: initialImageSrc })
