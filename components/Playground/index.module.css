@@ -5,18 +5,14 @@
     rgba(var(--semi-light-blue-0), 1)
   );
 }
+
 .button-group {
-  position: fixed;
-  opacity: 0.4;
-  transition: opacity 0.5s;
+  white-space: nowrap;
+  padding-left: 1em;
 }
 
-.button-group:hover {
-  opacity: 1;
-}
 .canvas-container {
-  width: 100vw;
-  height: 100vh;
+  min-height: calc(100vh - 32px);
   display: grid;
   place-items: center;
 }

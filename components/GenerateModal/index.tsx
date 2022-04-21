@@ -12,7 +12,7 @@ type Props = {
   imageWidth: number
   imageHeight: number
   visible?: boolean
-  onOK?: (config: GenerateConfig) => void
+  onOk?: (config: GenerateConfig) => void
   onCancel?: () => void
 }
 
@@ -20,7 +20,7 @@ const GeneratorModal: FC<Props> = ({
   imageWidth,
   imageHeight,
   visible,
-  onOK,
+  onOk,
   onCancel,
 }) => {
   const [sizeValid, setSizeValid] = useState(
@@ -43,9 +43,9 @@ const GeneratorModal: FC<Props> = ({
   const onModalOk = useCallback(async () => {
     if (formApiRef.current) {
       const config = await formApiRef.current.validate()
-      onOK?.(config)
+      onOk?.({ ...config })
     }
-  }, [onOK])
+  }, [onOk])
   const onModalCancel = useCallback(() => {
     onCancel?.()
   }, [onCancel])
@@ -144,7 +144,7 @@ export function useGenerateModal(
         imageWidth={imageWidth}
         imageHeight={imageHeight}
         visible={generateModalVisible}
-        onOK={onModalOk}
+        onOk={onModalOk}
         onCancel={onModalCancel}
       />
     ),

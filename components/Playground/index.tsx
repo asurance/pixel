@@ -1,149 +1,194 @@
 import { FC, useCallback, useEffect, useRef, useState } from 'react'
-import { Button, SplitButtonGroup } from '@douyinfe/semi-ui'
+import { Button, Dropdown, SplitButtonGroup, Toast } from '@douyinfe/semi-ui'
 import Github from '@/components/Github'
-import Pixelator from '@/Pixelator'
-import { ExportConfig, GenerateConfig } from '@/interfaces/Config'
+import Pixelator from '@/utils/Pixelator'
+import { ExportConfig, GenerateConfig, ImportConfig } from '@/interfaces/Config'
 import { useGenerateModal } from '@/components/GenerateModal'
 import { useExportModal } from '@/components/ExportModal'
 
 import styles from './index.module.css'
 import {
   IconExport,
+  IconFile,
+  IconImage,
   IconImport,
+  IconLink,
   IconPlay,
   IconStop,
 } from '@douyinfe/semi-icons'
+import { GetImageDataFromSrc } from '../../utils/ImageData'
+import { useImportModal } from '../ImportModal'
 
 type Props = {
   initialImageSrc?: string
 }
 
-const enum PictureState {
-  Loading,
-  Imported,
-  Calculating,
-  Finished,
-}
+// TODO 整理hooks
+// TODO 维护canvas数据
 
 const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
-  const [pictureState, setPictureState] = useState(PictureState.Loading)
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const imageRef = useRef(new Image())
-  const pixelatorRef = useRef(new Pixelator(imageRef.current))
   useEffect(() => {
-    const image = imageRef.current
-    image.src = initialImageSrc
-    image.onload = () => {
-      URL.revokeObjectURL(image.src)
-      setPictureState(PictureState.Imported)
-      if (canvasRef.current) {
-        const canvas = canvasRef.current
-        canvas.width = image.width
-        canvas.height = image.height
-        const ctx = canvas.getContext('2d')!
-        ctx.drawImage(image, 0, 0)
-      }
-    }
-    return () => {
-      image.onload = null
-      URL.revokeObjectURL(image.src)
-    }
+    onImportOk({ url: initialImageSrc })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-  const onClickImport = useCallback(() => {
+  const [imageData, setImageData] = useState<ImageData | null>(null)
+  const [fitTimeId, setFitTimeId] = useState<number | null>(null)
+  useEffect(() => {
+    return () => {
+      if (fitTimeId !== null) {
+        cancelAnimationFrame(fitTimeId)
+      }
+    }
+  }, [fitTimeId])
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const [pixelator, setPixelator] = useState<Pixelator | null>(null)
+  useEffect(() => {
+    if (canvasRef.current) {
+      if (imageData) {
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')!
+        canvas.width = imageData.width
+        canvas.height = imageData.height
+        ctx.putImageData(imageData, 0, 0)
+      }
+    }
+  }, [imageData])
+  const tryLoadBlob = async (blob: Blob) => {
+    const url = URL.createObjectURL(blob)
+    try {
+      const imageData = await GetImageDataFromSrc(url)
+      setImageData(imageData)
+      setPixelator(null)
+    } catch {
+      Toast.error('图片解析错误')
+    }
+    URL.revokeObjectURL(url)
+  }
+  const onImportFromFile = useCallback(() => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
     input.click()
-    input.onchange = () => {
+    input.onchange = async () => {
       if (input.files && input.files.length > 0) {
-        imageRef.current.src = URL.createObjectURL(input.files![0])
-        setPictureState(PictureState.Loading)
+        await tryLoadBlob(input.files.item(0)!)
       }
     }
   }, [])
-  const timeIdRef = useRef<number | null>(null)
-  useEffect(() => {
-    return () => {
-      if (timeIdRef.current !== null) {
-        cancelAnimationFrame(timeIdRef.current)
-      }
-    }
-  }, [])
-  const onGenerateOk = useCallback(({ size, k }: GenerateConfig) => {
-    const pixelator = pixelatorRef.current
-    pixelator.setSize(size).setK(k)
-    let lastCost = Infinity
-    const update = () => {
-      pixelator.fit()
-      canvasRef.current && pixelator.toCanvas(canvasRef.current)
-      const cost = pixelator.calculateCost()
-      const dif = lastCost - cost
-      if (dif > 0.1) {
-        timeIdRef.current = requestAnimationFrame(update)
+  const onImportFromClipboard = useCallback(async () => {
+    try {
+      const items = await navigator.clipboard.read()
+      if (items.length > 0) {
+        const item = items.at(0)!
+        const blob = await item.getType(item.types[0])
+        await tryLoadBlob(blob)
       } else {
-        timeIdRef.current = null
-        setPictureState(PictureState.Finished)
+        Toast.error('未读取到内容')
       }
-      lastCost = cost
+    } catch {
+      Toast.error('读取剪切板失败')
     }
-    update()
-    setPictureState(PictureState.Calculating)
   }, [])
-  const onClickStop = () => {
-    if (timeIdRef.current !== null) {
-      cancelAnimationFrame(timeIdRef.current)
-      timeIdRef.current = null
+  const onImportOk = useCallback(async ({ url }: ImportConfig) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      await tryLoadBlob(blob)
+    } catch {
+      Toast.error('图片下载失败')
     }
-    setPictureState(PictureState.Finished)
-  }
+  }, [])
+  const { importModal, openImportModal } = useImportModal(onImportOk)
+  const onGenerateOk = useCallback(
+    (config: GenerateConfig) => {
+      if (!imageData) return
+      const pixelator = new Pixelator(imageData, config)
+      setPixelator(pixelator)
+      let lastCost = Infinity
+      const update = () => {
+        const now = Date.now()
+        let time = Date.now()
+        while (time - now < 10) {
+          pixelator.fit()
+          time = Date.now()
+        }
+        canvasRef.current && pixelator.toCanvas(canvasRef.current)
+        const cost = pixelator.calculateCost()
+        const dif = lastCost - cost
+        if (dif > 0.1) {
+          setFitTimeId(requestAnimationFrame(update))
+        } else {
+          setFitTimeId(null)
+        }
+        lastCost = cost
+      }
+      update()
+    },
+    [imageData],
+  )
+  const onClickStop = useCallback(() => {
+    if (fitTimeId !== null) {
+      cancelAnimationFrame(fitTimeId)
+      setFitTimeId(null)
+    }
+  }, [fitTimeId])
   const { generateModal, openGenerateModal } = useGenerateModal(
-    imageRef.current.width,
-    imageRef.current.height,
+    imageData?.width ?? 0,
+    imageData?.height ?? 0,
     onGenerateOk,
   )
-  const onExportOK = useCallback((config: ExportConfig) => {
-    pixelatorRef.current.export(config)
-  }, [])
-  const { openExportModal, exportModal } = useExportModal(onExportOK)
+  const onExportOk = useCallback(
+    (config: ExportConfig) => {
+      pixelator?.export(config)
+    },
+    [pixelator],
+  )
+  const { openExportModal, exportModal } = useExportModal(onExportOk)
   return (
     <div className={styles.background}>
       <Github />
       <div className={styles['button-group']}>
         <SplitButtonGroup>
-          <Button
-            icon={<IconImport />}
-            onClick={onClickImport}
-            disabled={
-              ![PictureState.Imported, PictureState.Finished].includes(
-                pictureState,
-              )
+          <Dropdown
+            trigger="click"
+            clickToHide
+            render={
+              <Dropdown.Menu>
+                <Dropdown.Item icon={<IconImage />} onClick={onImportFromFile}>
+                  来自文件
+                </Dropdown.Item>
+                <Dropdown.Item
+                  icon={<IconFile />}
+                  onClick={onImportFromClipboard}
+                >
+                  来自剪切板
+                </Dropdown.Item>
+                <Dropdown.Item icon={<IconLink />} onClick={openImportModal}>
+                  来自URL
+                </Dropdown.Item>
+              </Dropdown.Menu>
             }
           >
-            导入图片
-          </Button>
+            <Button icon={<IconImport />}>导入图片</Button>
+          </Dropdown>
           <Button
             icon={<IconPlay />}
             onClick={openGenerateModal}
-            disabled={
-              ![PictureState.Imported, PictureState.Finished].includes(
-                pictureState,
-              )
-            }
+            disabled={fitTimeId !== null || imageData === null}
           >
             开始生成
           </Button>
           <Button
             icon={<IconStop />}
             onClick={onClickStop}
-            disabled={pictureState !== PictureState.Calculating}
+            disabled={fitTimeId === null}
           >
             停止生成
           </Button>
           <Button
             icon={<IconExport />}
             onClick={openExportModal}
-            disabled={pictureState !== PictureState.Finished}
+            disabled={fitTimeId !== null || pixelator === null}
           >
             导出图片
           </Button>
@@ -152,6 +197,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       <div className={styles['canvas-container']}>
         <canvas className={styles.canvas} ref={canvasRef} />
       </div>
+      {importModal}
       {generateModal}
       {exportModal}
     </div>

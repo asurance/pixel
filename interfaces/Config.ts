@@ -1,11 +1,14 @@
+export type ImportConfig = {
+  url: string
+}
+
 export type GenerateConfig = {
   size: number
   k: number
 }
 
-export type ExportType = 'png' | 'jpeg'
 export type ExportConfig = {
   filename: string
-  type: ExportType
+  type: string
   quality: number
 }

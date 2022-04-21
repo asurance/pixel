@@ -1,4 +1,4 @@
-import { ExportConfig } from '@/interfaces/Config'
+import { ExportConfig, GenerateConfig } from '@/interfaces/Config'
 
 type Color = [number, number, number, number]
 type Position = [number, number]
@@ -18,75 +18,76 @@ function CalculateDifference(a: Color, b: Color) {
 }
 
 export default class Pixelator {
-  size = 16
-  k = 16
-  width = 0
-  height = 0
-  colors: Color[][] = []
-  centers: Color[] = []
-  indice = new Map<number, Position[]>()
-  constructor(public image: HTMLImageElement) {}
+  private colors!: Color[][]
+  private centers!: Color[]
+  private indice: Map<number, Position[]>
+  private config: GenerateConfig
+  constructor(source: ImageData, config: GenerateConfig) {
+    this.config = config
+    this.initColors(source)
+    this.initCenters()
+    this.indice = new Map<number, Position[]>()
+    this.findNearestCenter()
+  }
 
-  setSize(size = 16): this {
-    this.size = size
-    this.colors.length = 0
-    const canvas = document.createElement('canvas')
-    canvas.width = this.image.width
-    canvas.height = this.image.height
-    const ctx = canvas.getContext('2d')!
-    ctx.drawImage(this.image, 0, 0)
-    const imageData = ctx.getImageData(
-      0,
-      0,
-      this.image.width,
-      this.image.height,
-    )
-    for (let i = 0; (i + 1) * this.size <= this.image.height; i++) {
+  private initColors(source: ImageData) {
+    const colors: Color[][] = []
+    for (let i = 0; (i + 1) * this.config.size <= source.height; i++) {
       const line: Color[] = []
-      for (let j = 0; (j + 1) * this.size <= this.image.width; j++) {
+      for (let j = 0; (j + 1) * this.config.size <= source.width; j++) {
         const color: Color = [0, 0, 0, 0]
-        for (let row = i * this.size; row < (i + 1) * this.size; row++) {
-          for (let col = j * this.size; col < (j + 1) * this.size; col++) {
-            color[0] += imageData.data[(row * this.image.width + col) * 4]
-            color[1] += imageData.data[(row * this.image.width + col) * 4 + 1]
-            color[2] += imageData.data[(row * this.image.width + col) * 4 + 2]
-            color[3] += imageData.data[(row * this.image.width + col) * 4 + 3]
+        for (
+          let row = i * this.config.size;
+          row < (i + 1) * this.config.size;
+          row++
+        ) {
+          for (
+            let col = j * this.config.size;
+            col < (j + 1) * this.config.size;
+            col++
+          ) {
+            color[0] += source.data[(row * source.width + col) * 4]
+            color[1] += source.data[(row * source.width + col) * 4 + 1]
+            color[2] += source.data[(row * source.width + col) * 4 + 2]
+            color[3] += source.data[(row * source.width + col) * 4 + 3]
           }
         }
         for (let i = 0; i < 4; i++) {
-          color[i] /= this.size * this.size
+          color[i] /= this.config.size * this.config.size
         }
         line.push(color)
       }
-      this.colors.push(line)
+      colors.push(line)
     }
-    this.height = this.colors.length
-    this.width = this.colors[0].length
-    return this
+    this.colors = colors
   }
 
-  setK(k = 16): this {
-    this.k = k
-    this.centers.length = 0
-    for (let i = 0; i < this.k; i++) {
-      this.centers[i] = [
+  private initCenters() {
+    const centers: Color[] = []
+    for (let i = 0; i < this.config.k; i++) {
+      centers.push([
         Math.random() * 255,
         Math.random() * 255,
         Math.random() * 255,
         Math.random() * 255,
-      ]
+      ])
     }
-    return this
+    this.centers = centers
   }
 
   fit() {
+    this.recalculateCenter()
+    this.findNearestCenter()
+  }
+
+  private findNearestCenter() {
     this.indice.clear()
-    for (let row = 0; row < this.height; row++) {
-      for (let col = 0; col < this.width; col++) {
+    for (let row = 0; row < this.colors.length; row++) {
+      for (let col = 0; col < this.colors[0].length; col++) {
         const color = this.colors[row][col]
         let minIndex = 0
         let minDif = CalculateDifference(color, this.centers[0])
-        for (let i = 1; i < this.k; i++) {
+        for (let i = 1; i < this.config.k; i++) {
           const dif = CalculateDifference(color, this.centers[i])
           if (dif < minDif) {
             minDif = dif
@@ -103,7 +104,10 @@ export default class Pixelator {
         list.push([row, col])
       }
     }
-    for (let i = 0; i < this.k; i++) {
+  }
+
+  private recalculateCenter() {
+    for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
         const list = this.indice.get(i)!
         const center: Color = [0, 0, 0, 0]
@@ -130,25 +134,30 @@ export default class Pixelator {
 
   calculateCost(): number {
     let result = 0
-    for (let i = 0; i < this.k; i++) {
+    for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
         for (const [row, col] of this.indice.get(i)!) {
           result += CalculateDifference(this.centers[i], this.colors[row][col])
         }
       }
     }
-    return result / this.width / this.height
+    return result / this.colors.length / this.colors[0].length
   }
 
   toCanvas(canvas: HTMLCanvasElement) {
-    canvas.width = this.width * this.size
-    canvas.height = this.height * this.size
+    canvas.width = this.colors[0].length * this.config.size
+    canvas.height = this.colors.length * this.config.size
     const ctx = canvas.getContext('2d')!
-    for (let i = 0; i < this.k; i++) {
+    for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
         ctx.fillStyle = ColorToStr(this.centers[i])
         for (const [row, col] of this.indice.get(i)!) {
-          ctx.fillRect(col * this.size, row * this.size, this.size, this.size)
+          ctx.fillRect(
+            col * this.config.size,
+            row * this.config.size,
+            this.config.size,
+            this.config.size,
+          )
         }
       }
     }
@@ -156,10 +165,10 @@ export default class Pixelator {
 
   export({ filename, type, quality }: ExportConfig) {
     const canvas = document.createElement('canvas')
-    canvas.width = this.width
-    canvas.height = this.height
+    canvas.width = this.colors[0].length
+    canvas.height = this.colors.length
     const ctx = canvas.getContext('2d')!
-    for (let i = 0; i < this.k; i++) {
+    for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
         ctx.fillStyle = ColorToStr(this.centers[i])
         for (const [row, col] of this.indice.get(i)!) {

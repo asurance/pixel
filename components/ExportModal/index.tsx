@@ -1,37 +1,40 @@
 import { BaseFormApi } from '@douyinfe/semi-foundation/lib/es/form/interface'
 import { Form, Modal } from '@douyinfe/semi-ui'
 import { FC, useCallback, useMemo, useRef, useState } from 'react'
-import { ExportConfig, ExportType } from '@/interfaces/Config'
+import { ExportConfig } from '@/interfaces/Config'
 
 import styles from './index.module.css'
 
 type Props = {
   visible?: boolean
-  onOK?: (config: ExportConfig) => void
+  onOk?: (config: ExportConfig) => void
   onCancel?: () => void
 }
 
-const ExportModal: FC<Props> = ({ visible, onOK, onCancel }) => {
+const ExportModal: FC<Props> = ({ visible, onOk, onCancel }) => {
   const formApiRef = useRef<BaseFormApi<ExportConfig> | null>(null)
   const [showQuality, setShowQuality] = useState(false)
   const onGetFormApi = useCallback((formApi: BaseFormApi<ExportConfig>) => {
     formApiRef.current = formApi
   }, [])
-  const onSelectChange = useCallback((value: string | string[]) => {
-    const type = value as ExportType
-    if (type === 'jpeg') {
-      formApiRef.current?.setValue('quality', 0.92)
-      setShowQuality(true)
-    } else {
-      setShowQuality(false)
-    }
-  }, [])
+  const onSelectChange = useCallback(
+    (value: string | number | any[] | Record<string, any>) => {
+      const type = value as string
+      if (type === 'jpeg') {
+        formApiRef.current?.setValue('quality', 0.92)
+        setShowQuality(true)
+      } else {
+        setShowQuality(false)
+      }
+    },
+    [],
+  )
   const onModalOk = useCallback(async () => {
     if (formApiRef.current) {
       const config = await formApiRef.current.validate()
-      onOK?.(config)
+      onOk?.(config)
     }
-  }, [onOK])
+  }, [onOk])
   const onModalCancel = useCallback(() => {
     onCancel?.()
   }, [onCancel])
@@ -84,7 +87,7 @@ export function useExportModal(onOk: (config: ExportConfig) => void) {
     () => (
       <ExportModal
         visible={exportModalVisible}
-        onOK={onModalOk}
+        onOk={onModalOk}
         onCancel={onModalCancel}
       />
     ),
