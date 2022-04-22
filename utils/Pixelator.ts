@@ -17,6 +17,75 @@ function CalculateDifference(a: Color, b: Color) {
   return sum
 }
 
+function RGBA2HSVA(color: Color): Color {
+  let h = 0
+  let s = 0
+  const min = Math.min(...color.slice(0, 3))
+  const max = Math.max(...color.slice(0, 3))
+  if (max === min) {
+    h = 0
+  } else if (max === color[0] && color[1] >= color[2]) {
+    h = 60 * ((color[1] - color[2]) / (max - min))
+  } else if (max === color[0] && color[1] < color[2]) {
+    h = 60 * ((color[1] - color[2]) / (max - min)) + 360
+  } else if (max === color[1]) {
+    h = 60 * ((color[2] - color[0]) / (max - min)) + 120
+  } else if (max === color[2]) {
+    h = 60 * ((color[0] - color[1]) / (max - min)) + 240
+  }
+  if (max === 0) {
+    s = 0
+  } else {
+    s = (1 - min / max) * 100
+  }
+  return [h, s, (max / 255) * 100, color[3]]
+}
+
+function HSVA2RGBA(color: Color): Color {
+  const i = Math.floor(color[0] / 60) % 6
+  const s = color[1] / 100
+  const v = color[2] / 100
+  const f = color[0] / 60 - i
+  const p = v * (1 - s)
+  const q = v * (1 - f * s)
+  const t = v * (1 - (1 - f) * s)
+  let r = 0
+  let g = 0
+  let b = 0
+  switch (i) {
+    case 0:
+      r = v
+      g = t
+      b = p
+      break
+    case 1:
+      r = q
+      g = v
+      b = p
+      break
+    case 2:
+      r = p
+      g = v
+      b = t
+      break
+    case 3:
+      r = p
+      g = q
+      b = v
+      break
+    case 4:
+      r = t
+      g = p
+      b = v
+      break
+    case 5:
+      r = v
+      g = p
+      b = q
+      break
+  }
+  return [r * 255, g * 255, b * 255, color[3]]
+}
 export default class Pixelator {
   private colors!: Color[][]
   private centers!: Color[]
@@ -24,10 +93,27 @@ export default class Pixelator {
   private config: GenerateConfig
   constructor(source: ImageData, config: GenerateConfig) {
     this.config = config
+    console.log(config)
     this.initColors(source)
     this.initCenters()
     this.indice = new Map<number, Position[]>()
     this.findNearestCenter()
+  }
+
+  private colorFromRGBA(color: Color) {
+    if (this.config.mode === 'rgba') {
+      return color
+    } else {
+      return RGBA2HSVA(color)
+    }
+  }
+
+  private colorToRGBA(color: Color) {
+    if (this.config.mode === 'rgba') {
+      return color
+    } else {
+      return HSVA2RGBA(color)
+    }
   }
 
   private initColors(source: ImageData) {
@@ -55,7 +141,7 @@ export default class Pixelator {
         for (let i = 0; i < 4; i++) {
           color[i] /= this.config.size * this.config.size
         }
-        line.push(color)
+        line.push(this.colorFromRGBA(color))
       }
       colors.push(line)
     }
@@ -65,12 +151,14 @@ export default class Pixelator {
   private initCenters() {
     const centers: Color[] = []
     for (let i = 0; i < this.config.k; i++) {
-      centers.push([
-        Math.random() * 255,
-        Math.random() * 255,
-        Math.random() * 255,
-        Math.random() * 255,
-      ])
+      centers.push(
+        this.colorFromRGBA([
+          Math.random() * 255,
+          Math.random() * 255,
+          Math.random() * 255,
+          Math.random() * 255,
+        ]),
+      )
     }
     this.centers = centers
   }
@@ -122,12 +210,12 @@ export default class Pixelator {
         }
         this.centers[i] = center
       } else {
-        this.centers[i] = [
+        this.centers[i] = this.colorFromRGBA([
           Math.random() * 255,
           Math.random() * 255,
           Math.random() * 255,
           Math.random() * 255,
-        ]
+        ])
       }
     }
   }
@@ -150,7 +238,7 @@ export default class Pixelator {
     const ctx = canvas.getContext('2d')!
     for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
-        ctx.fillStyle = ColorToStr(this.centers[i])
+        ctx.fillStyle = ColorToStr(this.colorToRGBA(this.centers[i]))
         for (const [row, col] of this.indice.get(i)!) {
           ctx.fillRect(
             col * this.config.size,
@@ -170,7 +258,7 @@ export default class Pixelator {
     const ctx = canvas.getContext('2d')!
     for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
-        ctx.fillStyle = ColorToStr(this.centers[i])
+        ctx.fillStyle = ColorToStr(this.colorToRGBA(this.centers[i]))
         for (const [row, col] of this.indice.get(i)!) {
           ctx.fillRect(col, row, 1, 1)
         }

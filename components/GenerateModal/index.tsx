@@ -61,7 +61,7 @@ const GeneratorModal: FC<Props> = ({
       onCancel={onModalCancel}
     >
       <Form
-        initValues={{ size: 16, k: 8 }}
+        initValues={{ size: 16, k: 8, mode: 'rgba' }}
         labelPosition="left"
         labelWidth={100}
         getFormApi={onGetFormApi}
@@ -116,6 +116,10 @@ const GeneratorModal: FC<Props> = ({
           }}
           onChange={onKChange}
         />
+        <Form.RadioGroup field="mode" label="模式">
+          <Form.Radio value="rgba">rgba</Form.Radio>
+          <Form.Radio value="hsva">hsva</Form.Radio>
+        </Form.RadioGroup>
       </Form>
     </Modal>
   )

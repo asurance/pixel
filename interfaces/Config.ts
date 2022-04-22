@@ -5,6 +5,7 @@ export type ImportConfig = {
 export type GenerateConfig = {
   size: number
   k: number
+  mode: string
 }
 
 export type ExportConfig = {
