@@ -1,13 +1,7 @@
-import { ExportConfig, GenerateConfig } from '@/interfaces/Config'
+import { GenerateConfig } from '@/interfaces/Config'
 
 type Color = [number, number, number, number]
 type Position = [number, number]
-
-function ColorToStr(color: Color): string {
-  return `#${color
-    .map((val) => `0${Math.round(val).toString(16)}`.slice(-2))
-    .join('')}`
-}
 
 function CalculateDifference(a: Color, b: Color) {
   let sum = 0
@@ -86,14 +80,13 @@ function HSVA2RGBA(color: Color): Color {
   }
   return [r * 255, g * 255, b * 255, color[3]]
 }
-export default class Pixelator {
+export default class PixelatorCore {
   private colors!: Color[][]
   private centers!: Color[]
   private indice: Map<number, Position[]>
   private config: GenerateConfig
   constructor(source: ImageData, config: GenerateConfig) {
     this.config = config
-    console.log(config)
     this.initColors(source)
     this.initCenters()
     this.indice = new Map<number, Position[]>()
@@ -232,42 +225,18 @@ export default class Pixelator {
     return result / this.colors.length / this.colors[0].length
   }
 
-  toCanvas(canvas: HTMLCanvasElement) {
-    canvas.width = this.colors[0].length * this.config.size
-    canvas.height = this.colors.length * this.config.size
-    const ctx = canvas.getContext('2d')!
+  toImageData() {
+    const width = this.colors[0].length
+    const height = this.colors.length
+    const imageData = new ImageData(width, height)
     for (let i = 0; i < this.config.k; i++) {
       if (this.indice.has(i)) {
-        ctx.fillStyle = ColorToStr(this.colorToRGBA(this.centers[i]))
+        const color = this.colorToRGBA(this.centers[i])
         for (const [row, col] of this.indice.get(i)!) {
-          ctx.fillRect(
-            col * this.config.size,
-            row * this.config.size,
-            this.config.size,
-            this.config.size,
-          )
+          imageData.data.set(color, (row * width + col) * 4)
         }
       }
     }
-  }
-
-  export({ filename, type, quality }: ExportConfig) {
-    const canvas = document.createElement('canvas')
-    canvas.width = this.colors[0].length
-    canvas.height = this.colors.length
-    const ctx = canvas.getContext('2d')!
-    for (let i = 0; i < this.config.k; i++) {
-      if (this.indice.has(i)) {
-        ctx.fillStyle = ColorToStr(this.colorToRGBA(this.centers[i]))
-        for (const [row, col] of this.indice.get(i)!) {
-          ctx.fillRect(col, row, 1, 1)
-        }
-      }
-    }
-    const url = canvas.toDataURL(`image/${type}`, quality)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename ? `${filename}.${type}` : ''
-    a.click()
+    return imageData
   }
 }

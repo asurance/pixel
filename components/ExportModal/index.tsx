@@ -33,10 +33,12 @@ const ExportModal: FC<Props> = ({ visible, onOk, onCancel }) => {
   const onModalOk = useCallback(async () => {
     if (formApiRef.current) {
       const config = await formApiRef.current.validate()
+      setShowQuality(false)
       onOk?.(config)
     }
   }, [onOk])
   const onModalCancel = useCallback(() => {
+    setShowQuality(false)
     onCancel?.()
   }, [onCancel])
   return (
@@ -58,8 +60,8 @@ const ExportModal: FC<Props> = ({ visible, onOk, onCancel }) => {
         <Form.InputGroup label={{ text: '导出文件' }} style={{ width: '100%' }}>
           <Form.Input field="filename" className={styles.filename} />
           <Form.Select field="type" onChange={onSelectChange}>
-            <Form.Select.Option value="png">png</Form.Select.Option>
-            <Form.Select.Option value="jpeg">jpeg</Form.Select.Option>
+            <Form.Select.Option value="png">.png</Form.Select.Option>
+            <Form.Select.Option value="jpeg">.jpeg</Form.Select.Option>
           </Form.Select>
         </Form.InputGroup>
         {showQuality && (
