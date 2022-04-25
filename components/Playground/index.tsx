@@ -79,7 +79,15 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     },
     [comsumeToken],
   )
+  const [importDropdownVisible, setImportDropdownVisible] = useState(false)
+  const onClickImport = useCallback(() => {
+    setImportDropdownVisible(true)
+  }, [])
+  const onClickImportOutside = useCallback(() => {
+    setImportDropdownVisible(false)
+  }, [])
   const onImportFromFile = useCallback(() => {
+    setImportDropdownVisible(false)
     const token = getLastedToken()
     const input = document.createElement('input')
     input.type = 'file'
@@ -93,6 +101,7 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     }
   }, [getLastedToken, tryLoadBlob])
   const onImportFromClipboard = useCallback(async () => {
+    setImportDropdownVisible(false)
     setAppState(AppState.Loading)
     const token = getLastedToken()
     try {
@@ -123,6 +132,10 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     [getLastedToken, tryLoadBlob],
   )
   const { importModal, openImportModal } = useImportModal(onImportOk)
+  const onImportFromUrl = useCallback(() => {
+    setImportDropdownVisible(false)
+    openImportModal()
+  }, [openImportModal])
   const onGenerateOk = useCallback(
     (config: GenerateConfig) => {
       if (!imageData) return
@@ -147,35 +160,33 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
       <div className={styles['button-group']}>
         <SplitButtonGroup>
           <Dropdown
-            trigger="click"
-            clickToHide
+            trigger="custom"
+            visible={importDropdownVisible}
+            onClickOutSide={onClickImportOutside}
             render={
               <Dropdown.Menu>
-                <Dropdown.Item
-                  icon={<IconImage />}
-                  disabled={appState === AppState.Generating}
-                  onClick={onImportFromFile}
-                >
+                <Dropdown.Item icon={<IconImage />} onClick={onImportFromFile}>
                   来自文件
                 </Dropdown.Item>
                 <Dropdown.Item
                   icon={<IconFile />}
-                  disabled={appState === AppState.Generating}
                   onClick={onImportFromClipboard}
                 >
                   来自剪切板
                 </Dropdown.Item>
-                <Dropdown.Item
-                  icon={<IconLink />}
-                  disabled={appState === AppState.Generating}
-                  onClick={openImportModal}
-                >
+                <Dropdown.Item icon={<IconLink />} onClick={onImportFromUrl}>
                   来自URL
                 </Dropdown.Item>
               </Dropdown.Menu>
             }
           >
-            <Button icon={<IconImport />}>导入图片</Button>
+            <Button
+              icon={<IconImport />}
+              disabled={appState === AppState.Generating}
+              onClick={onClickImport}
+            >
+              导入图片
+            </Button>
           </Dropdown>
           <Button
             icon={<IconPlay />}
