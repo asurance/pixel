@@ -33,6 +33,7 @@ export default class PixelatorWorker extends Pixelator {
       config,
     }
     this.worker.postMessage(message)
+    this.generating = true
   }
 
   stop(): void {

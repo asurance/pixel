@@ -144,7 +144,10 @@ const App: FC<Props> = ({ initialImageSrc = './0.jpeg' }) => {
     },
     [imageData],
   )
-  const onClickStop = useCallback(() => {}, [])
+  const onClickStop = useCallback(() => {
+    pixelatorRef.current.stop()
+    setAppState(AppState.Normal)
+  }, [])
   const { generateModal, openGenerateModal } = useGenerateModal(
     imageData?.width ?? 0,
     imageData?.height ?? 0,
