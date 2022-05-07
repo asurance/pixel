@@ -36,7 +36,7 @@ function onGenerate(message: GenerateMessage) {
       finish: false,
     }
     if (lastCost - cost > 0) {
-      id = requestAnimationFrame(update)
+      id = (setTimeout as WindowOrWorkerGlobalScope['setTimeout'])(update, 100)
     } else {
       id = null
       message.finish = true
